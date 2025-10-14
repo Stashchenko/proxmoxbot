@@ -1,3 +1,5 @@
+import json
+
 from aiohttp import web
 
 
@@ -6,7 +8,15 @@ class WebhookServer:
         self.bot = bot
 
     async def handle_webhook(self, request):
-        data = await request.json()
+        raw_body = await request.text()
+        try:
+            data = json.loads(raw_body)
+        except json.JSONDecodeError:
+            raw_body = raw_body.strip()
+            raw_body = raw_body.replace('\n', '\\n').replace('\r', '\\r')
+            # Replace single quotes with double quotes as a quick fix
+            data = json.loads(raw_body)
+
         severity = data.get("severity", "info")
         title = data.get("title", "No title")
         message = data.get("message", "")
