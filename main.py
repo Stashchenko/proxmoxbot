@@ -17,11 +17,18 @@ PROXMOX_USER = os.getenv("PROXMOX_USER")
 PROXMOX_TOKEN_ID = os.getenv("PROXMOX_TOKEN_ID")
 PROXMOX_SECRET = os.getenv("PROXMOX_SECRET")
 
+# Parse ignored VM IDs safely (defaults to empty list if not specified)
+IGNORED_MEMORY_VM_IDS = [
+    int(x.strip())
+    for x in os.getenv("IGNORED_MEMORY_VM_IDS", "").split(",")
+    if x.strip()
+]
+
 # Initialize services
 proxmox_service = ProxmoxService(PROXMOX_HOST, PROXMOX_USER, PROXMOX_TOKEN_ID, PROXMOX_SECRET)
 telegram_bot = TelegramBot(BOT_TOKEN, ALLOWED_CHAT_IDS, proxmox_service)
 webhook_server = WebhookServer(telegram_bot)
-monitor = ProxmoxMonitor(telegram_bot, proxmox_service)
+monitor = ProxmoxMonitor(telegram_bot, proxmox_service, ignored_vmid_list=IGNORED_MEMORY_VM_IDS)
 
 
 async def main():

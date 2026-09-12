@@ -2,10 +2,11 @@ import asyncio
 
 
 class ProxmoxMonitor:
-    def __init__(self, bot, proxmox, alert_threshold=80, interval=300):
+    def __init__(self, bot, proxmox, ignored_vmid_list=None, alert_threshold=80, interval=300):
         self.bot = bot
         self.proxmox = proxmox
         self.alert_threshold = alert_threshold
+        self.ignored_vmid_list = ignored_vmid_list or []
         self.interval = interval
         self._task = None
         self._running = False
@@ -15,6 +16,8 @@ class ProxmoxMonitor:
             try:
                 vms = self.proxmox.list_vms()  # ← use existing method
                 for vm in vms:
+                    if vm.get("vmid") in self.ignored_vmid_list:
+                        continue
                     mem_used = vm.get("mem_used", 0)
                     mem_max = max(vm.get("mem_max", 1), 1)
                     mem_percent = (mem_used / mem_max) * 100

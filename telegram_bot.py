@@ -1,5 +1,4 @@
 import asyncio
-
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
@@ -34,7 +33,11 @@ class TelegramBot:
         msg = "💻 *VMs and LXC containers:*\n"
         for i in items:
             emoji = "✅" if i['status'] == 'running' else "❌"
-            mem_percent = (i['mem_used'] / i['mem_max']) * 100
+
+            # Calculate and cap memory at 100% to hide hypervisor overhead
+            raw_percent = (i['mem_used'] / i['mem_max']) * 100
+            mem_percent = min(100.0, raw_percent)
+
             msg += f"{i['type']}: {i['name']} ({i['vmid']}) — {emoji}\n"
             msg += f"CPU: {i['cpu']:.1f}% | RAM: {mem_percent:.1f}%\n\n"
         await update.message.reply_text(msg, parse_mode='Markdown')

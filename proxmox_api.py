@@ -55,12 +55,22 @@ class ProxmoxService:
         return None, None
 
     def _build_vm_info(self, vm_type, data, status):
+        mem_used = status.get('mem', 0)
+        mem_max = max(status.get('maxmem', 1), 1)
+
+        # Calculate raw percentage
+        raw_percent = (mem_used / mem_max) * 100
+
+        # Cap it gracefully at 100% so your custom UI looks clean
+        mem_percent = min(100.0, raw_percent)
+
         return {
             "type": vm_type,
             "name": data['name'],
             "vmid": data['vmid'],
             "status": data['status'],
             "cpu": status.get('cpu', 0) * 100,
-            "mem_used": status.get('mem', 0),
-            "mem_max": status.get('maxmem', 1)
+            "mem_used": mem_used,
+            "mem_max": mem_max,
+            "mem_percentage": round(mem_percent, 1)
         }
